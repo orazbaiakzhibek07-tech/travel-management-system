@@ -1,0 +1,47 @@
+DROP TABLE IF EXISTS bookings;
+DROP TABLE IF EXISTS destinations;
+DROP TABLE IF EXISTS trips;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE trips (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(200) NOT NULL,
+  country VARCHAR(100) NOT NULL,
+  city VARCHAR(100) NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  duration INTEGER NOT NULL,
+  description TEXT,
+  image_url VARCHAR(500),
+  includes TEXT,
+  status VARCHAR(20) DEFAULT 'planned',
+  start_date DATE,
+  end_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE destinations (
+  id SERIAL PRIMARY KEY,
+  trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+  city VARCHAR(100) NOT NULL,
+  country VARCHAR(100) NOT NULL,
+  order_index INTEGER DEFAULT 1,
+  notes TEXT
+);
+
+CREATE TABLE bookings (
+  id SERIAL PRIMARY KEY,
+  trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(20) DEFAULT 'full',
+  price DECIMAL(10,2),
+  status VARCHAR(20) DEFAULT 'pending'
+);
