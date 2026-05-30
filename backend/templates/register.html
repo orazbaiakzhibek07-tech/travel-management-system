@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>Тіркелу</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .form-box { background: #16213e; padding: 40px; border-radius: 10px; width: 400px; }
+        h2 { text-align: center; color: #e94560; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #aaa; }
+        input { width: 100%; padding: 12px; background: #0f3460; border: 1px solid #333; border-radius: 5px; color: #eee; font-size: 14px; }
+        input:focus { outline: none; border-color: #e94560; }
+        .btn { width: 100%; background: #e94560; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #c73652; }
+        .message { padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center; display: none; }
+        .success { background: #1a472a; color: #51cf66; }
+        .error { background: #4a1942; color: #ff6b6b; }
+        .link { text-align: center; margin-top: 20px; color: #aaa; }
+        .link a { color: #e94560; }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <h2>✈️ Тіркелу</h2>
+        <div class="message" id="message"></div>
+        <div class="form-group">
+            <label>Аты</label>
+            <input type="text" id="name" placeholder="Атыңызды енгізіңіз">
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+            <label>Құпиясөз</label>
+            <input type="password" id="password" placeholder="Құпиясөзді енгізіңіз">
+        </div>
+        <button class="btn" onclick="register()">Тіркелу</button>
+        <div class="link">Аккаунтыңыз бар ма? <a href="/login.html">Кіру</a></div>
+    </div>
+
+    <script>
+        async function register() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msg = document.getElementById('message');
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msg.className = 'message success';
+                    msg.textContent = '✅ Сәтті тіркелдіңіз! Кіру бетіне өтіңіз.';
+                    msg.style.display = 'block';
+                    setTimeout(() => window.location.href = '/login.html', 2000);
+                } else {
+                    msg.className = 'message error';
+                    msg.textContent = '❌ ' + (data.message || 'Қате орын алды');
+                    msg.style.display = 'block';
+                }
+            } catch (err) {
+                msg.className = 'message error';
+                msg.textContent = '❌ Сервермен байланыс жоқ';
+                msg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

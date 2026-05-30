@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; }
+        .navbar { background: #16213e; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { color: #e94560; }
+        .btn { background: #e94560; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .section-title { font-size: 1.5em; margin-bottom: 20px; color: #e94560; }
+        .form-box { background: #16213e; padding: 30px; border-radius: 10px; margin-bottom: 40px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 10px; background: #0f3460; border: 1px solid #333; border-radius: 5px; color: #eee; }
+        .trips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .trip-card { background: #16213e; padding: 20px; border-radius: 10px; border-left: 4px solid #e94560; }
+        .trip-card h3 { color: #e94560; margin-bottom: 10px; }
+        .trip-card p { color: #aaa; margin-bottom: 5px; font-size: 14px; }
+        .delete-btn { background: #4a1942; color: #ff6b6b; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>✈️ Travel Management</h1>
+        <button class="btn" onclick="logout()">Шығу</button>
+    </nav>
+    <div class="container">
+        <div class="form-box">
+            <div class="section-title">➕ Жаңа саяхат қосу</div>
+            <div class="form-row">
+                <input type="text" id="destination" placeholder="Бағыт (мысалы: Алматы)">
+                <input type="date" id="start_date">
+                <input type="date" id="end_date">
+            </div>
+            <div class="form-row">
+                <input type="number" id="budget" placeholder="Бюджет ($)">
+                <input type="text" id="description" placeholder="Сипаттама">
+            </div>
+            <button class="btn" onclick="addTrip()">Қосу</button>
+        </div>
+
+        <div class="section-title">🗺️ Менің саяхаттарым</div>
+        <div class="trips-grid" id="trips-container">
+            <p style="color:#aaa">Жүктелуде...</p>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login.html';
+
+        async function loadTrips() {
+            const res = await fetch('/api/trips', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const trips = await res.json();
+            const container = document.getElementById('trips-container');
+
+            if (!trips.length) {
+                container.innerHTML = '<p style="color:#aaa">Саяхаттар жоқ. Жаңа саяхат қосыңыз!</p>';
+                return;
+            }
+
+            container.innerHTML = trips.map(trip => `
+                <div class="trip-card">
+                    <h3>📍 ${trip.destination}</h3>
+                    <p>📅 ${trip.start_date} → ${trip.end_date}</p>
+                    <p>💰 Бюджет: $${trip.budget || 'белгісіз'}</p>
+                    <p>${trip.description || ''}</p>
+                    <button class="delete-btn" onclick="deleteTrip(${trip.id})">🗑️ Жою</button>
+                </div>
+            `).join('');
+        }
+
+        async function addTrip() {
+            const res = await fetch('/api/trips', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({
+                    destination: document.getElementById('destination').value,
+                    start_date: document.getElementById('start_date').value,
+                    end_date: document.getElementById('end_date').value,
+                    budget: document.getElementById('budget').value,
+                    description: document.getElementById('description').value
+                })
+            });
+            if (res.ok) loadTrips();
+        }
+
+        async function deleteTrip(id) {
+            await fetch('/api/trips/' + id, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            loadTrips();
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+
+        loadTrips();
+    </script>
+</body>
+</html>
