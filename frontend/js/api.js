@@ -1,5 +1,4 @@
-const API = 'http://localhost:3000/api';
-
+const API = 'https://travel-management-system-trgd.onrender.com/api';
 function getToken() {
   return localStorage.getItem('token');
 }
@@ -70,4 +69,88 @@ function statusLabel(s) {
 
 // Modal ашу
 function openModal(trip = null) {
-  document.getElementById('modal-title').textContent = trip ? 'Сапарды өзгер
+  document.getElementById('modal-title').textContent = trip ? 'Сапарды өзгерту' : 'Жаңа сапар қосу';
+  document.getElementById('trip-id').value = trip?.id || '';
+  document.getElementById('trip-title').value = trip?.title || '';
+  document.getElementById('trip-country').value = trip?.country || '';
+  document.getElementById('trip-city').value = trip?.city || '';
+  document.getElementById('trip-price').value = trip?.price || '';
+  document.getElementById('trip-duration').value = trip?.duration || '';
+  document.getElementById('trip-start').value = trip?.start_date?.split('T')[0] || '';
+  document.getElementById('trip-end').value = trip?.end_date?.split('T')[0] || '';
+  document.getElementById('trip-desc').value = trip?.description || '';
+  document.getElementById('trip-includes').value = trip?.includes || '';
+  document.getElementById('trip-image').value = trip?.image_url || '';
+  document.getElementById('modal-error').textContent = '';
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+// Сапар сақтау
+async function saveTrip() {
+  const id = document.getElementById('trip-id').value;
+  const body = {
+    title: document.getElementById('trip-title').value,
+    country: document.getElementById('trip-country').value,
+    city: document.getElementById('trip-city').value,
+    price: document.getElementById('trip-price').value,
+    duration: document.getElementById('trip-duration').value,
+    start_date: document.getElementById('trip-start').value,
+    end_date: document.getElementById('trip-end').value,
+    description: document.getElementById('trip-desc').value,
+    includes: document.getElementById('trip-includes').value,
+    image_url: document.getElementById('trip-image').value,
+  };
+
+  try {
+    const res = await fetch(`${API}/trips${id ? '/'+id : ''}`, {
+      method: id ? 'PUT' : 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!data.success) {
+      document.getElementById('modal-error').textContent = 
+        data.error || data.errors?.[0]?.message || 'Қате болды';
+      return;
+    }
+    closeModal();
+    loadTrips();
+  } catch {
+    document.getElementById('modal-error').textContent = 'Сервермен байланыс жоқ';
+  }
+}
+
+// Сапар өзгерту
+async function editTrip(id) {
+  const res = await fetch(`${API}/trips/${id}`, {
+    headers: { 'Authorization': `Bearer ${getToken()}` }
+  });
+  const data = await res.json();
+  if (data.success) openModal(data.data);
+}
+
+// Сапар өшіру
+async function deleteTrip(id) {
+  if (!confirm('Сапарды өшіресіз бе?')) return;
+  await fetch(`${API}/trips/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${getToken()}` }
+  });
+  loadTrips();
+}
+
+// Шығу
+function logout() {
+  localStorage.clear();
+  window.location.href = 'login.html';
+}
+
+// Бет жүктелгенде
+window.onload = loadTrips;
