@@ -1,19 +1,8 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const path = require('path');
+const Database = require('better-sqlite3');
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production'
-    ? { rejectUnauthorized: false }
-    : false
-});
+// Render үшін /tmp папкасын қолдану
+const dbPath = process.env.DB_PATH || path.join('/tmp', 'travel.db');
+const db = new Database(dbPath);
 
-pool.connect((err) => {
-  if (err) {
-    console.error('Дерекқорға қосылу қатесі:', err.message);
-  } else {
-    console.log('PostgreSQL-ге сәтті қосылды ✅');
-  }
-});
-
-module.exports = pool;
+module.exports = db;
