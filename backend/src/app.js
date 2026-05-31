@@ -1,5 +1,7 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
+
 require('dotenv').config();
 
 const app = express();
@@ -12,7 +14,7 @@ const tripRoutes = require('./routes/trips');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
-
+app.use(express.static(path.join(__dirname, '../../frontend')));
 app.get('/', (req, res) => {
   res.json({ message: 'Travel Planner API жұмыс істеп тұр! ✈️' });
 });
@@ -27,6 +29,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
-const path = require('path');
 
-app.use(express.static(path.join(__dirname, '../templates')));
